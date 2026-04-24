@@ -2,8 +2,21 @@
 Route service using Nominatim (geocoding) and OSRM (routing).
 No API key needed — both are free public services.
 """
+import socket
 import time
+
 import requests
+from urllib3.util.connection import allowed_gai_family
+
+# Force IPv4 — Render free tier often fails with IPv6 ("Network is unreachable")
+_original_gai_family = allowed_gai_family
+
+
+def _forced_ipv4():
+    return socket.AF_INET
+
+
+requests.packages.urllib3.util.connection.allowed_gai_family = _forced_ipv4
 
 NOMINATIM_BASE = 'https://nominatim.openstreetmap.org'
 OSRM_SERVERS = [
