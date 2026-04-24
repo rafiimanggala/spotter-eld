@@ -4,16 +4,11 @@ export default function LogSheetList({ dailyLogs }) {
   if (!dailyLogs || dailyLogs.length === 0) return null
 
   return (
-    <div className="space-y-4 animate-fade-in-up stagger-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-bold text-slate-800 tracking-tight">
-          ELD Daily Log Sheets
-        </h2>
-        <span className="text-[11px] font-semibold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-full">
-          {dailyLogs.length} day{dailyLogs.length > 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="space-y-4">
+    <div className="animate-enter delay-3">
+      <h3 className="text-[13px] font-medium text-neutral-500 mb-3">
+        Daily Logs <span className="text-neutral-400">({dailyLogs.length})</span>
+      </h3>
+      <div className="space-y-3">
         {dailyLogs.map((log, idx) => (
           <LogSheet key={idx} logData={log} />
         ))}
