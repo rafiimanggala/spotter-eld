@@ -17,28 +17,31 @@ const STOP_STYLES = {
   rest: { color: '#7c3aed', label: 'R', bg: 'bg-purple-600' },
   break: { color: '#2563eb', label: 'B', bg: 'bg-blue-600' },
   restart: { color: '#7c3aed', label: '34', bg: 'bg-purple-600' },
+  start: { color: '#059669', label: 'S', bg: 'bg-emerald-600' },
+  end: { color: '#dc2626', label: 'E', bg: 'bg-red-700' },
 }
 
 function createStopIcon(type) {
   const style = STOP_STYLES[type] || STOP_STYLES.break
+  const size = type === 'start' || type === 'end' ? 32 : 28
   return L.divIcon({
     className: '',
     html: `<div style="
       background: ${style.color};
       color: white;
-      width: 28px;
-      height: 28px;
+      width: ${size}px;
+      height: ${size}px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: ${type === 'start' || type === 'end' ? '13' : '11'}px;
       font-weight: 700;
-      border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     ">${style.label}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
 }
 
@@ -53,7 +56,7 @@ function FitBounds({ coordinates }) {
   return null
 }
 
-export default function RouteMap({ route, stops }) {
+export default function RouteMap({ route, stops, locations }) {
   const coordinates = useMemo(() => {
     if (!route?.coordinates) return []
     return route.coordinates.map((c) => [c[0], c[1]])
@@ -72,6 +75,9 @@ export default function RouteMap({ route, stops }) {
     )
   }
 
+  const startLoc = locations?.current
+  const endLoc = locations?.dropoff
+
   return (
     <div className="rounded-xl overflow-hidden shadow-md" style={{ height: 450 }}>
       <MapContainer
@@ -86,13 +92,25 @@ export default function RouteMap({ route, stops }) {
         />
         <Polyline positions={coordinates} color="#2563eb" weight={4} opacity={0.8} />
         <FitBounds coordinates={coordinates} />
+
+        {startLoc && (
+          <Marker position={[startLoc.lat, startLoc.lng]} icon={createStopIcon('start')}>
+            <Popup>
+              <div className="text-sm">
+                <p className="font-bold">Start (Current Location)</p>
+                <p>{startLoc.label}</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
         {stops?.map((stop, idx) => {
           const lat = stop.coords?.lat ?? stop.latitude
           const lng = stop.coords?.lng ?? stop.longitude
           if (!lat || !lng) return null
           return (
             <Marker
-              key={idx}
+              key={`${stop.type}-${idx}`}
               position={[lat, lng]}
               icon={createStopIcon(stop.type)}
             >
@@ -107,6 +125,17 @@ export default function RouteMap({ route, stops }) {
             </Marker>
           )
         })}
+
+        {endLoc && (
+          <Marker position={[endLoc.lat, endLoc.lng]} icon={createStopIcon('end')}>
+            <Popup>
+              <div className="text-sm">
+                <p className="font-bold">End (Dropoff)</p>
+                <p>{endLoc.label}</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
     </div>
   )

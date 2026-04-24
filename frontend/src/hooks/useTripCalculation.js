@@ -15,8 +15,18 @@ export const useTripCalculation = () => {
       setResult(data)
       return data
     } catch (err) {
-      const message =
-        err.response?.data?.detail || err.message || 'Failed to calculate trip'
+      const data = err.response?.data
+      let message = 'Failed to calculate trip'
+      if (data?.error) {
+        message = data.error
+      } else if (data?.detail) {
+        message = data.detail
+      } else if (typeof data === 'object' && data) {
+        const firstKey = Object.keys(data)[0]
+        if (firstKey) message = `${firstKey}: ${data[firstKey]}`
+      } else if (err.message) {
+        message = err.message
+      }
       setError(message)
       throw err
     } finally {

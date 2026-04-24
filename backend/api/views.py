@@ -158,7 +158,9 @@ class TripCalculateView(APIView):
                 stop['coords'] = point
 
         # 8. Generate daily logs
-        daily_logs = generate_daily_logs(trip_result['events'])
+        daily_logs = generate_daily_logs(
+            trip_result['events'], cycle_used=data['cycle_used']
+        )
 
         # 9. Build route coordinates as [lat, lng] for Leaflet
         route_coords = [

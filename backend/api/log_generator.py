@@ -71,13 +71,23 @@ def _split_event_at_midnight(event):
     return pieces if pieces else [event]
 
 
-def generate_daily_logs(events):
+def _extract_location(events, prefer_last=False):
+    """Extract a location string from events with non-empty location."""
+    search = reversed(events) if prefer_last else iter(events)
+    for evt in search:
+        loc = evt.get('location', '')
+        if loc and evt.get('type') != 'off_duty':
+            return loc
+    return ''
+
+
+def generate_daily_logs(events, cycle_used=0):
     """
     Convert trip events into daily log sheets.
 
     Each sheet covers one calendar day (midnight to midnight).
     Gaps between events are filled with off-duty.
-    Each day's totals MUST sum to 24.0 hours.
+    Each day's totals MUST sum to 24.0 hours per day.
     """
     if not events:
         return []
@@ -100,6 +110,7 @@ def generate_daily_logs(events):
 
     logs = []
     current_date = first_date
+    cumulative_on_duty = cycle_used
 
     while current_date <= last_date:
         day_key = current_date.isoformat()
@@ -110,10 +121,8 @@ def generate_daily_logs(events):
         )
         day_end = day_start + timedelta(days=1)
 
-        # Sort events by start time
         day_evts.sort(key=lambda e: _parse_time(e['start_time']))
 
-        # Fill gaps with off-duty
         filled_events = []
         last_end = day_start
 
@@ -141,7 +150,6 @@ def generate_daily_logs(events):
                 'miles': 0,
             })
 
-        # Calculate totals and build entries
         totals = {s: 0.0 for s in STATUS_ROWS}
         total_miles = 0
         remarks = []
@@ -159,7 +167,6 @@ def generate_daily_logs(events):
             if evt.get('miles', 0) > 0:
                 total_miles += evt['miles']
 
-            # Add remark for non-off-duty events with a location
             evt_type = evt.get('type', '')
             if evt.get('location') and evt_type != 'off_duty':
                 remarks.append({
@@ -170,7 +177,6 @@ def generate_daily_logs(events):
 
             start_frac = _time_to_day_fraction(start)
             end_frac = _time_to_day_fraction(end)
-            # Handle midnight edge case
             if end == day_end:
                 end_frac = 24.0
 
@@ -182,18 +188,28 @@ def generate_daily_logs(events):
                 'location': evt.get('location', ''),
             })
 
-        # Round totals
         totals = {k: round(v, 2) for k, v in totals.items()}
+
+        day_on_duty = round(totals['driving'] + totals['on_duty'], 2)
+        cumulative_on_duty += day_on_duty
+
+        from_location = _extract_location(filled_events, prefer_last=False)
+        to_location = _extract_location(filled_events, prefer_last=True)
 
         logs.append({
             'date': day_key,
             'total_miles': round(total_miles, 1),
             'entries': entries,
             'totals': totals,
-            'total_on_duty': round(
-                totals['driving'] + totals['on_duty'], 2
-            ),
+            'total_on_duty': day_on_duty,
             'remarks': remarks,
+            'from_location': from_location,
+            'to_location': to_location,
+            'recap': {
+                'on_duty_today': day_on_duty,
+                'cycle_used': round(cumulative_on_duty, 1),
+                'cycle_remaining': round(70 - cumulative_on_duty, 1),
+            },
         })
 
         current_date += timedelta(days=1)

@@ -1,20 +1,21 @@
 /**
  * FMCSA-compliant Driver's Daily Log Sheet — Canvas renderer
- * Canvas size: 1000 x 580
+ * Matches DOT Form 395.1 layout
+ * Canvas size: 1000 x 620
  */
 
 const CANVAS_W = 1000
-const CANVAS_H = 580
+const CANVAS_H = 620
 
 // Grid geometry
 const GRID_LEFT = 80
-const GRID_RIGHT = 930
-const GRID_TOP = 100
-const GRID_BOTTOM = 300
-const GRID_W = GRID_RIGHT - GRID_LEFT // 850
-const GRID_H = GRID_BOTTOM - GRID_TOP // 200
-const ROW_H = GRID_H / 4 // 50px per row
-const COL_W = GRID_W / 24 // ~35.4px per hour
+const GRID_RIGHT = 920
+const GRID_TOP = 120
+const GRID_BOTTOM = 320
+const GRID_W = GRID_RIGHT - GRID_LEFT
+const GRID_H = GRID_BOTTOM - GRID_TOP
+const ROW_H = GRID_H / 4
+const COL_W = GRID_W / 24
 
 const STATUS_MAP = {
   off_duty: 0,
@@ -47,6 +48,20 @@ function parseTimeToDecimal(timeStr) {
   return hours + minutes / 60
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  } catch {
+    return dateStr
+  }
+}
+
 export function drawLogSheet(canvas, logData) {
   if (!canvas || !logData) return
 
@@ -55,7 +70,6 @@ export function drawLogSheet(canvas, logData) {
 
   const ctx = canvas.getContext('2d')
 
-  // White background
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
 
@@ -73,33 +87,78 @@ function drawHeader(ctx, logData) {
   ctx.textAlign = 'center'
   ctx.fillText("DRIVER'S DAILY LOG", CANVAS_W / 2, 22)
 
-  ctx.font = '10px Arial, sans-serif'
-  ctx.fillText('(24-Hour Period)', CANVAS_W / 2, 36)
+  ctx.font = '9px Arial, sans-serif'
+  ctx.fillText('(24-Hour Period — U.S. DOT)', CANVAS_W / 2, 35)
 
-  // Header fields
   ctx.textAlign = 'left'
-  ctx.font = '11px Arial, sans-serif'
+  ctx.font = '10px Arial, sans-serif'
+  ctx.fillStyle = '#555555'
 
-  const date = logData.date || ''
-  const totalMiles = logData.total_miles || logData.totalMiles || ''
+  const date = formatDate(logData.date)
+  const totalMiles = Math.round(logData.total_miles || logData.totalMiles || 0)
   const carrier = logData.carrier || 'Transport Co.'
-  const truckNum = logData.truck_number || logData.truckNumber || ''
+  const truckNum = logData.truck_number || logData.truckNumber || 'Unit 1'
+  const fromLoc = logData.from_location || logData.fromLocation || ''
+  const toLoc = logData.to_location || logData.toLocation || ''
 
-  // Row 1
-  ctx.fillText(`Date: ${date}`, 30, 55)
-  ctx.fillText(`Total Miles Driven: ${totalMiles}`, 250, 55)
-  ctx.fillText(`Carrier / Operator: ${carrier}`, 500, 55)
+  // Row 1: Date + From/To
+  const y1 = 52
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Date:', 30, y1)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(date, 62, y1)
 
-  // Row 2
-  ctx.fillText(`Vehicle Numbers: ${truckNum}`, 30, 75)
-  ctx.fillText(`Main Office Address: ___________________`, 250, 75)
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('From:', 280, y1)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(fromLoc.substring(0, 40), 315, y1)
 
-  // Divider under header
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('To:', 620, y1)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(toLoc.substring(0, 40), 640, y1)
+
+  // Row 2: Miles + Carrier + Vehicle
+  const y2 = 70
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Total Miles:', 30, y2)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(`${totalMiles}`, 98, y2)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Carrier:', 180, y2)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(carrier, 224, y2)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Vehicle Numbers:', 450, y2)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(truckNum, 550, y2)
+
+  // Row 3: Main Office + 24-hr period start
+  const y3 = 88
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Main Office:', 30, y3)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText('___________________', 100, y3)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('24-Hour Period Starting Time:', 350, y3)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText('Midnight', 530, y3)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Home Terminal:', 650, y3)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText('___________', 740, y3)
+
+  // Divider
   ctx.strokeStyle = '#000000'
-  ctx.lineWidth = 1
+  ctx.lineWidth = 1.5
   ctx.beginPath()
-  ctx.moveTo(20, 90)
-  ctx.lineTo(CANVAS_W - 20, 90)
+  ctx.moveTo(20, 100)
+  ctx.lineTo(CANVAS_W - 20, 100)
   ctx.stroke()
 }
 
@@ -107,10 +166,8 @@ function drawGrid(ctx) {
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1.5
 
-  // Outer grid border
   ctx.strokeRect(GRID_LEFT, GRID_TOP, GRID_W, GRID_H)
 
-  // Horizontal row dividers
   ctx.lineWidth = 1
   for (let r = 1; r < 4; r++) {
     const y = GRID_TOP + r * ROW_H
@@ -120,7 +177,6 @@ function drawGrid(ctx) {
     ctx.stroke()
   }
 
-  // Row labels on the left
   ctx.fillStyle = '#000000'
   ctx.font = '9px Arial, sans-serif'
   ctx.textAlign = 'right'
@@ -129,21 +185,18 @@ function drawGrid(ctx) {
     ctx.fillText(ROW_LABELS[r], GRID_LEFT - 4, y + 3)
   }
 
-  // Row number labels (1-4) inside left edge
   ctx.font = 'bold 10px Arial, sans-serif'
   ctx.textAlign = 'center'
   for (let r = 0; r < 4; r++) {
     const y = rowToY(r)
-    ctx.fillText(`${r + 1}`, GRID_LEFT + 6, y + 4)
+    ctx.fillText(`${r + 1}`, GRID_LEFT + 8, y + 4)
   }
 
-  // Vertical hour lines + labels
   ctx.textAlign = 'center'
   ctx.font = '9px Arial, sans-serif'
   for (let h = 0; h <= 24; h++) {
     const x = timeToX(h)
 
-    // Major hour line
     ctx.strokeStyle = '#000000'
     ctx.lineWidth = h === 0 || h === 24 ? 1.5 : 0.8
     ctx.beginPath()
@@ -151,11 +204,9 @@ function drawGrid(ctx) {
     ctx.lineTo(x, GRID_BOTTOM)
     ctx.stroke()
 
-    // Hour label on top
     ctx.fillStyle = '#000000'
     ctx.fillText(HOUR_LABELS[h], x, GRID_TOP - 4)
 
-    // Quarter-hour ticks
     if (h < 24) {
       ctx.strokeStyle = '#cccccc'
       ctx.lineWidth = 0.3
@@ -192,7 +243,6 @@ function drawEntries(ctx, entries) {
     const x2 = timeToX(endH)
     const y = rowToY(rowIdx)
 
-    // Vertical connecting line from previous entry
     if (prevX !== null && prevY !== null && prevY !== y) {
       ctx.beginPath()
       ctx.moveTo(x1, prevY)
@@ -200,12 +250,10 @@ function drawEntries(ctx, entries) {
       ctx.stroke()
     }
 
-    // Dot at start
     ctx.beginPath()
     ctx.arc(x1, y, 3, 0, Math.PI * 2)
     ctx.fill()
 
-    // Horizontal line
     ctx.beginPath()
     ctx.moveTo(x1, y)
     ctx.lineTo(x2, y)
@@ -217,7 +265,7 @@ function drawEntries(ctx, entries) {
 }
 
 function drawTotals(ctx, entries) {
-  const totals = [0, 0, 0, 0] // off_duty, sleeper, driving, on_duty
+  const totals = [0, 0, 0, 0]
 
   for (const entry of entries) {
     const rowIdx = STATUS_MAP[entry.status]
@@ -227,35 +275,34 @@ function drawTotals(ctx, entries) {
     totals[rowIdx] += endH - startH
   }
 
-  // "Total" label
-  ctx.fillStyle = '#000000'
-  ctx.font = 'bold 10px Arial, sans-serif'
-  ctx.textAlign = 'left'
-  ctx.fillText('Total', GRID_RIGHT + 8, GRID_TOP - 4)
+  const totalX = GRID_RIGHT + 12
 
-  // Per-row totals
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 9px Arial, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('Total', totalX + 20, GRID_TOP - 4)
+  ctx.fillText('Hours', totalX + 20, GRID_TOP + 6)
+
   ctx.font = 'bold 12px Arial, sans-serif'
   ctx.textAlign = 'center'
   for (let r = 0; r < 4; r++) {
     const y = rowToY(r)
-    ctx.fillText(totals[r].toFixed(1), GRID_RIGHT + 30, y + 4)
+    ctx.fillText(totals[r].toFixed(2), totalX + 20, y + 4)
   }
 
-  // Sum line
   const sum = totals.reduce((a, b) => a + b, 0)
   ctx.lineWidth = 1
   ctx.beginPath()
-  ctx.moveTo(GRID_RIGHT + 8, GRID_BOTTOM + 4)
-  ctx.lineTo(GRID_RIGHT + 52, GRID_BOTTOM + 4)
+  ctx.moveTo(totalX, GRID_BOTTOM + 4)
+  ctx.lineTo(totalX + 42, GRID_BOTTOM + 4)
   ctx.stroke()
 
   ctx.font = 'bold 13px Arial, sans-serif'
-  ctx.fillText(sum.toFixed(1), GRID_RIGHT + 30, GRID_BOTTOM + 20)
+  ctx.fillText(sum.toFixed(1), totalX + 20, GRID_BOTTOM + 20)
 
-  // Circle on-duty total (driving + on_duty)
   const onDutyTotal = totals[2] + totals[3]
-  const circleX = GRID_RIGHT + 30
-  const circleY = GRID_BOTTOM + 38
+  const circleX = totalX + 20
+  const circleY = GRID_BOTTOM + 40
   ctx.font = 'bold 12px Arial, sans-serif'
   ctx.fillText(onDutyTotal.toFixed(1), circleX, circleY + 4)
   ctx.beginPath()
@@ -264,26 +311,28 @@ function drawTotals(ctx, entries) {
   ctx.stroke()
 
   ctx.font = '8px Arial, sans-serif'
-  ctx.fillText('On-Duty', circleX, circleY + 20)
+  ctx.fillText('Total', circleX, circleY + 20)
+  ctx.fillText('On-Duty', circleX, circleY + 28)
 }
 
 function drawRemarks(ctx, remarks, entries) {
-  // Remarks section background
-  const remarkTop = 310
-  const remarkBottom = 480
+  const remarkTop = 330
+  const remarkBottom = 500
   const remarkH = remarkBottom - remarkTop
 
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
   ctx.strokeRect(GRID_LEFT, remarkTop, GRID_W, remarkH)
 
-  // Label
   ctx.fillStyle = '#000000'
-  ctx.font = 'bold 11px Arial, sans-serif'
-  ctx.textAlign = 'right'
-  ctx.fillText('Remarks', GRID_LEFT - 4, remarkTop + 14)
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.textAlign = 'left'
+  ctx.fillText('REMARKS', GRID_LEFT + 4, remarkTop + 14)
 
-  // Draw grid lines in remarks (24 hours)
+  ctx.font = '8px Arial, sans-serif'
+  ctx.fillStyle = '#666666'
+  ctx.fillText('(Record city, town, or village and State at each change of duty status)', GRID_LEFT + 68, remarkTop + 14)
+
   ctx.strokeStyle = '#e5e5e5'
   ctx.lineWidth = 0.3
   for (let h = 1; h < 24; h++) {
@@ -294,7 +343,17 @@ function drawRemarks(ctx, remarks, entries) {
     ctx.stroke()
   }
 
-  // Draw remarks as diagonal text
+  // Horizontal guide lines for remarks text
+  ctx.strokeStyle = '#f0f0f0'
+  ctx.lineWidth = 0.3
+  for (let row = 1; row <= 6; row++) {
+    const y = remarkTop + 20 + row * 22
+    ctx.beginPath()
+    ctx.moveTo(GRID_LEFT, y)
+    ctx.lineTo(GRID_RIGHT, y)
+    ctx.stroke()
+  }
+
   if (!remarks || remarks.length === 0) return
 
   ctx.fillStyle = '#000000'
@@ -303,12 +362,11 @@ function drawRemarks(ctx, remarks, entries) {
 
   const usedPositions = []
 
-  for (let i = 0; i < remarks.length; i++) {
+  for (let i = 0; i < remarks.length && i < 12; i++) {
     const remark = remarks[i]
     const time = parseTimeToDecimal(remark.time || remark.start_time || 0)
     let x = timeToX(time)
 
-    // Avoid overlapping by shifting if too close
     for (const usedX of usedPositions) {
       if (Math.abs(x - usedX) < 25) {
         x += 25
@@ -316,22 +374,22 @@ function drawRemarks(ctx, remarks, entries) {
     }
     usedPositions.push(x)
 
-    // Clamp x within remarks box
     x = Math.max(GRID_LEFT + 5, Math.min(x, GRID_RIGHT - 60))
 
-    const y = remarkTop + 20 + (i % 6) * 24
+    const row = Math.floor(i / 2)
+    const y = remarkTop + 36 + row * 22
     const text = remark.text || remark.location || `${remark.city || ''} - ${remark.activity || ''}`
 
     ctx.save()
     ctx.translate(x, y)
-    ctx.rotate(-Math.PI / 4)
+    ctx.rotate(-Math.PI / 6)
     ctx.fillText(text.substring(0, 35), 0, 0)
     ctx.restore()
   }
 }
 
 function drawFooter(ctx, logData) {
-  const footerY = 490
+  const footerY = 510
 
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 1
@@ -345,34 +403,58 @@ function drawFooter(ctx, logData) {
   ctx.textAlign = 'left'
 
   const shippingDoc = logData.shipping_doc || logData.shippingDoc || '___________________'
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Shipping Document:', 30, footerY + 16)
+  ctx.font = '10px Arial, sans-serif'
+  ctx.fillText(shippingDoc, 145, footerY + 16)
 
-  ctx.fillText(`Shipping Document: ${shippingDoc}`, 30, footerY + 18)
+  // Signature
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Driver Signature:', 30, footerY + 36)
+  ctx.font = '10px Arial, sans-serif'
+  ctx.fillText('___________________________', 133, footerY + 36)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Date:', 350, footerY + 36)
+  ctx.font = '10px Arial, sans-serif'
+  ctx.fillText('____________', 382, footerY + 36)
 
   // Recap section
-  ctx.font = 'bold 11px Arial, sans-serif'
-  ctx.fillText('RECAP:', 500, footerY + 18)
+  const recapX = 530
+  ctx.font = 'bold 12px Arial, sans-serif'
+  ctx.fillText('RECAP — 70 Hour / 8 Day', recapX, footerY + 16)
 
-  ctx.font = '10px Arial, sans-serif'
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 0.5
+  ctx.strokeRect(recapX - 4, footerY + 20, 440, 50)
+
   const recap = logData.recap || {}
-
-  // 7-day / 8-day recap table
-  const recapX = 560
-  ctx.fillText(`On-Duty Hours Today: ${(recap.on_duty_today || 0).toFixed(1)}`, recapX, footerY + 18)
-  ctx.fillText(`Cycle Used: ${(recap.cycle_used || 0).toFixed(1)} / 70.0`, recapX, footerY + 34)
-  ctx.fillText(`Cycle Remaining: ${(recap.cycle_remaining || 0).toFixed(1)}`, recapX, footerY + 50)
-
-  // Signature line
   ctx.font = '10px Arial, sans-serif'
-  ctx.fillText('Driver Signature: ___________________________', 30, footerY + 50)
-  ctx.fillText('Date: ____________', 350, footerY + 50)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('On-Duty Today:', recapX + 4, footerY + 36)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(`${(recap.on_duty_today || 0).toFixed(1)} hrs`, recapX + 100, footerY + 36)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Cycle Used:', recapX + 170, footerY + 36)
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillText(`${(recap.cycle_used || 0).toFixed(1)} / 70.0 hrs`, recapX + 250, footerY + 36)
+
+  ctx.font = 'bold 10px Arial, sans-serif'
+  ctx.fillText('Remaining:', recapX + 4, footerY + 54)
+  ctx.font = 'bold 12px Arial, sans-serif'
+  const remaining = recap.cycle_remaining || 0
+  ctx.fillStyle = remaining < 11 ? '#dc2626' : '#16a34a'
+  ctx.fillText(`${remaining.toFixed(1)} hrs`, recapX + 76, footerY + 54)
 
   // FMCSA notice
+  ctx.fillStyle = '#888888'
   ctx.font = '8px Arial, sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillStyle = '#666666'
   ctx.fillText(
-    'This log is generated in compliance with FMCSA Hours of Service regulations (49 CFR Part 395)',
+    'Generated in compliance with FMCSA Hours of Service regulations (49 CFR Part 395)',
     CANVAS_W / 2,
-    CANVAS_H - 8,
+    CANVAS_H - 6,
   )
 }

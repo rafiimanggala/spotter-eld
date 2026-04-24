@@ -104,7 +104,7 @@ function App() {
 
             {!loading && result && (
               <>
-                <RouteMap route={result.route} stops={result.stops} />
+                <RouteMap route={result.route} stops={result.stops} locations={result.locations} />
 
                 {result.summary && (
                   <div className="bg-white rounded-xl shadow-md p-5">

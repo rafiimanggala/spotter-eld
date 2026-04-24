@@ -159,6 +159,8 @@ def _insert_mandatory_break(state, location='', coords=None):
         state, BREAK_MINUTES / 60, 'off_duty', 'break',
         location, coords=coords,
     )
+    # 14-hour window is NOT pauseable — off-duty still counts
+    state.window_used += BREAK_MINUTES / 60
     state.reset_break_clock()
     state.stops.append({
         'type': 'break',
@@ -212,6 +214,8 @@ def _insert_fuel_stop(state, location='', coords=None):
             state, FUEL_STOP_MINUTES / 60, 'off_duty', 'fuel',
             location, coords=coords,
         )
+        # 14-hour window is NOT pauseable
+        state.window_used += FUEL_STOP_MINUTES / 60
         state.reset_break_clock()
     else:
         _add_event(
@@ -278,10 +282,11 @@ def _drive_segment(state, segment, location_resolver=None):
             drive_miles = remaining_miles
             drive_time = remaining_miles / speed if speed > 0 else 0
 
-        # Add driving event
+        # Add driving event with resolved location
+        drive_loc = _resolve_location(state, location_resolver)
         _add_event(
             state, drive_time, 'driving', 'driving',
-            miles=drive_miles,
+            location=drive_loc, miles=drive_miles,
         )
         state.add_driving(drive_time, drive_miles)
 
