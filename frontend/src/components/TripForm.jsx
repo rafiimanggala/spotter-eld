@@ -5,7 +5,7 @@ export default function TripForm({ onSubmit, loading }) {
     current_location: '',
     pickup_location: '',
     dropoff_location: '',
-    current_cycle_used: 0,
+    cycle_used: 0,
   })
 
   const handleChange = (e) => {
@@ -79,8 +79,8 @@ export default function TripForm({ onSubmit, loading }) {
         </label>
         <input
           type="number"
-          name="current_cycle_used"
-          value={form.current_cycle_used}
+          name="cycle_used"
+          value={form.cycle_used}
           onChange={handleChange}
           min="0"
           max="70"
