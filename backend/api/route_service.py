@@ -6,11 +6,16 @@ import time
 import requests
 
 NOMINATIM_BASE = 'https://nominatim.openstreetmap.org'
-OSRM_BASE = 'https://router.project-osrm.org'
+OSRM_SERVERS = [
+    'https://router.project-osrm.org',
+    'https://routing.openstreetmap.de/routed-car',
+]
 
 HEADERS = {
     'User-Agent': 'SpotterELDTripPlanner/1.0 (contact@spotter-eld.dev)',
 }
+
+MAX_RETRIES = 3
 
 _last_nominatim_call = 0.0
 
@@ -52,32 +57,45 @@ def geocode(address):
 
 def get_route(start_coords, end_coords):
     """
-    Get driving route via OSRM.
+    Get driving route via OSRM with retry + fallback servers.
     Returns distance_miles, duration_hours, geometry (list of [lng, lat]).
     """
-    url = (
-        f"{OSRM_BASE}/route/v1/driving/"
+    path = (
+        f"/route/v1/driving/"
         f"{start_coords['lng']},{start_coords['lat']};"
         f"{end_coords['lng']},{end_coords['lat']}"
         f"?overview=full&geometries=geojson"
     )
-    resp = requests.get(url, timeout=15)
-    resp.raise_for_status()
-    data = resp.json()
 
-    if data.get('code') != 'Ok' or not data.get('routes'):
-        raise ValueError(
-            f"OSRM routing failed: {data.get('code', 'unknown')}"
-        )
+    last_error = None
+    for server in OSRM_SERVERS:
+        for attempt in range(MAX_RETRIES):
+            try:
+                resp = requests.get(
+                    f"{server}{path}",
+                    headers=HEADERS,
+                    timeout=15,
+                )
+                resp.raise_for_status()
+                data = resp.json()
 
-    route = data['routes'][0]
-    coords_list = route['geometry']['coordinates']  # [[lng, lat], ...]
+                if data.get('code') != 'Ok' or not data.get('routes'):
+                    raise ValueError(
+                        f"OSRM routing failed: {data.get('code', 'unknown')}"
+                    )
 
-    return {
-        'distance_miles': route['distance'] / 1609.34,
-        'duration_hours': route['duration'] / 3600,
-        'geometry': coords_list,
-    }
+                route = data['routes'][0]
+                return {
+                    'distance_miles': route['distance'] / 1609.34,
+                    'duration_hours': route['duration'] / 3600,
+                    'geometry': route['geometry']['coordinates'],
+                }
+            except (requests.RequestException, ValueError) as e:
+                last_error = e
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(1 * (attempt + 1))
+
+    raise ValueError(f"Routing failed after trying all servers: {last_error}")
 
 
 def reverse_geocode(lat, lng):
