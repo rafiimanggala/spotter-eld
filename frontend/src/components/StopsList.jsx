@@ -23,7 +23,7 @@ export default function StopsList({ stops }) {
             const c = COLORS[stop.type] || { bg: 'bg-stone-400', ring: 'ring-stone-100' }
             return (
               <div
-                key={idx}
+                key={`${stop.type}-${stop.time || idx}`}
                 className="relative flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-stone-50/80 transition-colors duration-150"
               >
                 <div className={`relative z-10 w-[22px] h-[22px] rounded-full ${c.bg} ring-4 ${c.ring} flex items-center justify-center shrink-0 mt-0.5`}>

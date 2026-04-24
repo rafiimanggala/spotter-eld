@@ -221,6 +221,7 @@ function LocationField({ label, name, value, onValueChange, onSelect, placeholde
           onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
           required
           placeholder={placeholder}
+          maxLength={200}
           autoComplete="off"
           className="input-ring w-full h-10 pl-9 pr-8 bg-white border border-stone-200 rounded-lg text-[14px] text-stone-900 placeholder:text-stone-300"
         />

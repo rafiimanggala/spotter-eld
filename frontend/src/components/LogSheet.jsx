@@ -20,7 +20,7 @@ export default function LogSheet({ logData }) {
 
   if (!logData) return null
 
-  const totalDriving = (logData.entries || [])
+  const totalDriving = logData.totals?.driving ?? (logData.entries || [])
     .filter((e) => e.status === 'driving')
     .reduce((sum, e) => {
       const start = parseTime(e.start_time ?? e.start)
@@ -28,7 +28,7 @@ export default function LogSheet({ logData }) {
       return sum + (end - start)
     }, 0)
 
-  const totalOnDuty = (logData.entries || [])
+  const totalOnDuty = logData.totals?.onDuty ?? (logData.entries || [])
     .filter((e) => e.status === 'driving' || e.status === 'on_duty')
     .reduce((sum, e) => {
       const start = parseTime(e.start_time ?? e.start)

@@ -10,7 +10,7 @@ export default function LogSheetList({ dailyLogs }) {
       </h3>
       <div className="space-y-3">
         {dailyLogs.map((log, idx) => (
-          <LogSheet key={idx} logData={log} />
+          <LogSheet key={log.date || idx} logData={log} />
         ))}
       </div>
     </div>

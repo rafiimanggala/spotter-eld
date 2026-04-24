@@ -2,8 +2,11 @@
 Route service using Nominatim (geocoding) and OSRM (routing).
 No API key needed — both are free public services.
 """
+import logging
 import socket
 import time
+
+logger = logging.getLogger(__name__)
 
 import requests
 from urllib3.util.connection import allowed_gai_family
@@ -58,6 +61,7 @@ def geocode(address):
             timeout=10,
         )
         if resp.status_code == 429:
+            logger.warning('Nominatim rate limited on geocode attempt %d for: %s', attempt + 1, address)
             time.sleep(2 ** attempt)
             continue
         resp.raise_for_status()
@@ -66,6 +70,7 @@ def geocode(address):
         raise Exception(f'Nominatim rate limited after {MAX_RETRIES} retries')
     results = resp.json()
     if not results:
+        logger.warning('Geocode returned no results for: %s', address)
         raise ValueError(f'Could not geocode: {address}')
     hit = results[0]
     return {
@@ -105,13 +110,19 @@ def get_route(start_coords, end_coords):
                     )
 
                 route = data['routes'][0]
-                return {
+                result = {
                     'distance_miles': route['distance'] / 1609.34,
                     'duration_hours': route['duration'] / 3600,
                     'geometry': route['geometry']['coordinates'],
                 }
+                logger.info(
+                    'Route calculated: %.1f miles, %.2f hours',
+                    result['distance_miles'], result['duration_hours'],
+                )
+                return result
             except (requests.RequestException, ValueError) as e:
                 last_error = e
+                logger.warning('Routing attempt %d failed on %s: %s', attempt + 1, server, e)
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(2 * (attempt + 1))
 

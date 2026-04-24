@@ -43,6 +43,12 @@ function createStopIcon(type) {
   })
 }
 
+const iconCache = {}
+function getStopIcon(type) {
+  if (!iconCache[type]) iconCache[type] = createStopIcon(type)
+  return iconCache[type]
+}
+
 function FitBounds({ coordinates }) {
   const map = useMap()
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function RouteMap({ route, stops, locations }) {
         <FitBounds coordinates={coordinates} />
 
         {startLoc && (
-          <Marker position={[startLoc.lat, startLoc.lng]} icon={createStopIcon('start')}>
+          <Marker position={[startLoc.lat, startLoc.lng]} icon={getStopIcon('start')}>
             <Popup><div className="text-sm"><p className="font-semibold">Start</p><p className="text-stone-500">{startLoc.label}</p></div></Popup>
           </Marker>
         )}
@@ -98,7 +104,7 @@ export default function RouteMap({ route, stops, locations }) {
           const lng = stop.coords?.lng ?? stop.longitude
           if (!lat || !lng) return null
           return (
-            <Marker key={`${stop.type}-${idx}`} position={[lat, lng]} icon={createStopIcon(stop.type)}>
+            <Marker key={`${stop.type}-${idx}`} position={[lat, lng]} icon={getStopIcon(stop.type)}>
               <Popup>
                 <div className="text-sm">
                   <p className="font-semibold capitalize">{stop.type}</p>
@@ -112,7 +118,7 @@ export default function RouteMap({ route, stops, locations }) {
         })}
 
         {endLoc && (
-          <Marker position={[endLoc.lat, endLoc.lng]} icon={createStopIcon('end')}>
+          <Marker position={[endLoc.lat, endLoc.lng]} icon={getStopIcon('end')}>
             <Popup><div className="text-sm"><p className="font-semibold">End</p><p className="text-stone-500">{endLoc.label}</p></div></Popup>
           </Marker>
         )}

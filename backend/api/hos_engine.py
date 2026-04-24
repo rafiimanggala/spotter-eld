@@ -14,7 +14,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional, Callable
 
-AVG_SPEED_MPH = 55
 FUEL_INTERVAL_MILES = 1000
 FUEL_STOP_MINUTES = 30
 BREAK_MINUTES = 30

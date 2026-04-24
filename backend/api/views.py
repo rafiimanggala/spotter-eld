@@ -2,8 +2,11 @@
 Trip calculation API endpoint.
 Wires together route_service, hos_engine, and log_generator.
 """
+import logging
 from datetime import datetime, timedelta
 from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -48,8 +51,9 @@ class TripCalculateView(APIView):
             pickup_geo = geocode(data['pickup_location'])
             dropoff_geo = geocode(data['dropoff_location'])
         except Exception as e:
+            logger.error('Geocoding failed', exc_info=True)
             return Response(
-                {'error': f'Geocoding failed: {str(e)}'},
+                {'error': 'Could not find one or more locations. Please check your input.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -58,11 +62,22 @@ class TripCalculateView(APIView):
             route1 = get_route(current_geo, pickup_geo)
             route2 = get_route(pickup_geo, dropoff_geo)
         except Exception as e:
+            logger.error('Routing failed', exc_info=True)
             return Response(
-                {'error': f'Routing failed: {str(e)}'},
+                {'error': 'Could not calculate route between locations. Please try different locations.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        try:
+            return self._build_response(data, current_geo, pickup_geo, dropoff_geo, route1, route2)
+        except Exception as e:
+            logger.error('Trip calculation failed', exc_info=True)
+            return Response(
+                {'error': 'An unexpected error occurred. Please try again.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _build_response(self, data, current_geo, pickup_geo, dropoff_geo, route1, route2):
         # 3. Build trip segments
         segments = []
 
@@ -167,7 +182,7 @@ class TripCalculateView(APIView):
             [coord[1], coord[0]] for coord in all_geometry
         ]
 
-        # 9. Assemble response
+        # 10. Assemble response
         response_data = {
             'route': {
                 'total_distance_miles': round(total_route_miles, 1),
