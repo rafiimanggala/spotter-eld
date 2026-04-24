@@ -4,8 +4,8 @@ FMCSA Hours of Service compliant trip planner with route mapping and ELD daily l
 
 ## Live Demo
 
-- **Frontend**: [Vercel deployment URL]
-- **Backend API**: [Render deployment URL]
+- **Frontend**: https://frontend-lac-alpha-42.vercel.app
+- **Backend API**: https://spotter-eld-api.onrender.com
 
 ## Features
 
