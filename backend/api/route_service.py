@@ -44,19 +44,26 @@ def _rate_limit_nominatim():
 
 def geocode(address):
     """Convert address string to {lat, lng, label}."""
-    _rate_limit_nominatim()
-    resp = requests.get(
-        f'{NOMINATIM_BASE}/search',
-        params={
-            'q': address,
-            'format': 'json',
-            'limit': 1,
-            'countrycodes': 'us',
-        },
-        headers=HEADERS,
-        timeout=10,
-    )
-    resp.raise_for_status()
+    for attempt in range(MAX_RETRIES):
+        _rate_limit_nominatim()
+        resp = requests.get(
+            f'{NOMINATIM_BASE}/search',
+            params={
+                'q': address,
+                'format': 'json',
+                'limit': 1,
+                'countrycodes': 'us',
+            },
+            headers=HEADERS,
+            timeout=10,
+        )
+        if resp.status_code == 429:
+            time.sleep(2 ** attempt)
+            continue
+        resp.raise_for_status()
+        break
+    else:
+        raise Exception(f'Nominatim rate limited after {MAX_RETRIES} retries')
     results = resp.json()
     if not results:
         raise ValueError(f'Could not geocode: {address}')
@@ -113,18 +120,25 @@ def get_route(start_coords, end_coords):
 
 def reverse_geocode(lat, lng):
     """Convert coordinates to nearest city, state string."""
-    _rate_limit_nominatim()
-    resp = requests.get(
-        f'{NOMINATIM_BASE}/reverse',
-        params={
-            'lat': lat,
-            'lon': lng,
-            'format': 'json',
-        },
-        headers=HEADERS,
-        timeout=10,
-    )
-    resp.raise_for_status()
+    for attempt in range(MAX_RETRIES):
+        _rate_limit_nominatim()
+        resp = requests.get(
+            f'{NOMINATIM_BASE}/reverse',
+            params={
+                'lat': lat,
+                'lon': lng,
+                'format': 'json',
+            },
+            headers=HEADERS,
+            timeout=10,
+        )
+        if resp.status_code == 429:
+            time.sleep(2 ** attempt)
+            continue
+        resp.raise_for_status()
+        break
+    else:
+        return f'{lat:.2f}, {lng:.2f}'
     data = resp.json()
 
     if 'error' in data:
