@@ -28,7 +28,7 @@ HEADERS = {
     'User-Agent': 'SpotterELDTripPlanner/1.0 (contact@spotter-eld.dev)',
 }
 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 
 _last_nominatim_call = 0.0
 
@@ -87,7 +87,7 @@ def get_route(start_coords, end_coords):
                 resp = requests.get(
                     f"{server}{path}",
                     headers=HEADERS,
-                    timeout=15,
+                    timeout=30,
                 )
                 resp.raise_for_status()
                 data = resp.json()
@@ -106,7 +106,7 @@ def get_route(start_coords, end_coords):
             except (requests.RequestException, ValueError) as e:
                 last_error = e
                 if attempt < MAX_RETRIES - 1:
-                    time.sleep(1 * (attempt + 1))
+                    time.sleep(2 * (attempt + 1))
 
     raise ValueError(f"Routing failed after trying all servers: {last_error}")
 
