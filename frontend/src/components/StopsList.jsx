@@ -37,7 +37,7 @@ export default function StopsList({ stops }) {
                   </span>
                 </td>
                 <td className="py-2 px-2 text-gray-800">{stop.location}</td>
-                <td className="py-2 px-2 text-gray-600">{stop.time ? new Date(stop.time).toLocaleString() : '-'}</td>
+                <td className="py-2 px-2 text-gray-600">{stop.time ? new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '-'}</td>
                 <td className="py-2 px-2 text-gray-600">{stop.duration ? (stop.duration >= 60 ? `${Math.floor(stop.duration/60)}h ${stop.duration%60}m` : `${stop.duration}m`) : '-'}</td>
               </tr>
             ))}

@@ -118,7 +118,7 @@ export default function RouteMap({ route, stops, locations }) {
                 <div className="text-sm">
                   <p className="font-bold capitalize">{stop.type}</p>
                   <p>{stop.location}</p>
-                  {stop.time && <p className="text-gray-600">{new Date(stop.time).toLocaleString()}</p>}
+                  {stop.time && <p className="text-gray-600">{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>}
                   {stop.duration && <p className="text-gray-600">Duration: {stop.duration >= 60 ? `${Math.floor(stop.duration/60)}h ${stop.duration%60}m` : `${stop.duration}m`}</p>}
                 </div>
               </Popup>
