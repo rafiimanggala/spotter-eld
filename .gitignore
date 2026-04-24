@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+venv/
+.env
+node_modules/
+dist/
+.DS_Store
+*.egg-info/
+*.log
+backend/db.sqlite3
+.vscode/
+.idea/
+
+# Assessment reference files
+*.docx
+*.pdf
+*.srt
+fmsca-image.png
+blank-paper-log.png
+ASSESSMENT-REFERENCE.md
+docs/
