@@ -87,9 +87,14 @@ export default function TripForm({ onSubmit, loading }) {
           step="0.5"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          70-hour / 8-day cycle limit (0-70)
-        </p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-xs text-gray-500">
+            70-hour / 8-day cycle limit
+          </p>
+          <p className={`text-xs font-medium ${70 - form.cycle_used <= 11 ? 'text-red-600' : 'text-green-600'}`}>
+            {(70 - form.cycle_used).toFixed(1)}h remaining
+          </p>
+        </div>
       </div>
 
       <button

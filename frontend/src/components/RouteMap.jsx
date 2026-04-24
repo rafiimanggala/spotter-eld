@@ -78,8 +78,19 @@ export default function RouteMap({ route, stops, locations }) {
   const startLoc = locations?.current
   const endLoc = locations?.dropoff
 
+  const LEGEND_ITEMS = [
+    { type: 'start', label: 'Start' },
+    { type: 'pickup', label: 'Pickup' },
+    { type: 'fuel', label: 'Fuel' },
+    { type: 'break', label: 'Break' },
+    { type: 'rest', label: 'Rest' },
+    { type: 'restart', label: '34h Restart' },
+    { type: 'dropoff', label: 'Dropoff' },
+    { type: 'end', label: 'End' },
+  ]
+
   return (
-    <div className="rounded-xl overflow-hidden shadow-md" style={{ height: 450 }}>
+    <div className="rounded-xl overflow-hidden shadow-md relative" style={{ height: 450 }}>
       <MapContainer
         center={[39.8283, -98.5795]}
         zoom={4}
@@ -137,6 +148,19 @@ export default function RouteMap({ route, stops, locations }) {
           </Marker>
         )}
       </MapContainer>
+      <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {LEGEND_ITEMS.map(({ type, label }) => (
+            <div key={type} className="flex items-center gap-1">
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-white"
+                style={{ background: STOP_STYLES[type]?.color }}
+              />
+              <span className="text-[10px] text-gray-700 font-medium">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
