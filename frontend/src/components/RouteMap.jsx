@@ -11,19 +11,19 @@ L.Icon.Default.mergeOptions({
 })
 
 const STOP_STYLES = {
-  pickup: { color: '#16a34a', label: 'P', bg: 'bg-green-600' },
-  dropoff: { color: '#dc2626', label: 'D', bg: 'bg-red-600' },
-  fuel: { color: '#d97706', label: 'F', bg: 'bg-amber-600' },
-  rest: { color: '#7c3aed', label: 'R', bg: 'bg-purple-600' },
-  break: { color: '#2563eb', label: 'B', bg: 'bg-blue-600' },
-  restart: { color: '#7c3aed', label: '34', bg: 'bg-purple-600' },
-  start: { color: '#059669', label: 'S', bg: 'bg-emerald-600' },
-  end: { color: '#dc2626', label: 'E', bg: 'bg-red-700' },
+  pickup: { color: '#10b981', label: 'P' },
+  dropoff: { color: '#ef4444', label: 'D' },
+  fuel: { color: '#f59e0b', label: 'F' },
+  rest: { color: '#8b5cf6', label: 'R' },
+  break: { color: '#3b82f6', label: 'B' },
+  restart: { color: '#8b5cf6', label: '34' },
+  start: { color: '#059669', label: 'S' },
+  end: { color: '#dc2626', label: 'E' },
 }
 
 function createStopIcon(type) {
   const style = STOP_STYLES[type] || STOP_STYLES.break
-  const size = type === 'start' || type === 'end' ? 32 : 28
+  const size = type === 'start' || type === 'end' ? 34 : 28
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -35,10 +35,12 @@ function createStopIcon(type) {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: ${type === 'start' || type === 'end' ? '13' : '11'}px;
-      font-weight: 700;
+      font-size: ${type === 'start' || type === 'end' ? '12' : '10'}px;
+      font-weight: 800;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.05);
+      letter-spacing: -0.5px;
     ">${style.label}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -50,7 +52,7 @@ function FitBounds({ coordinates }) {
   useEffect(() => {
     if (coordinates && coordinates.length > 0) {
       const bounds = L.latLngBounds(coordinates.map((c) => [c[0], c[1]]))
-      map.fitBounds(bounds, { padding: [30, 30] })
+      map.fitBounds(bounds, { padding: [40, 40] })
     }
   }, [coordinates, map])
   return null
@@ -64,12 +66,15 @@ export default function RouteMap({ route, stops, locations }) {
 
   if (!route) {
     return (
-      <div className="bg-gray-100 rounded-xl h-[450px] flex items-center justify-center text-gray-400">
+      <div className="bg-slate-50 border border-slate-200/60 rounded-2xl h-[450px] flex items-center justify-center">
         <div className="text-center">
-          <svg className="w-16 h-16 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          <p>Map will appear here</p>
+          <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-slate-400">Route map will appear here</p>
+          <p className="text-xs text-slate-300 mt-1">Enter trip details and calculate</p>
         </div>
       </div>
     )
@@ -90,7 +95,7 @@ export default function RouteMap({ route, stops, locations }) {
   ]
 
   return (
-    <div className="rounded-xl overflow-hidden shadow-md relative" style={{ height: 450 }}>
+    <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 relative animate-fade-in-up" style={{ height: 450 }}>
       <MapContainer
         center={[39.8283, -98.5795]}
         zoom={4}
@@ -101,15 +106,15 @@ export default function RouteMap({ route, stops, locations }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Polyline positions={coordinates} color="#2563eb" weight={4} opacity={0.8} />
+        <Polyline positions={coordinates} color="#4f46e5" weight={4} opacity={0.85} />
         <FitBounds coordinates={coordinates} />
 
         {startLoc && (
           <Marker position={[startLoc.lat, startLoc.lng]} icon={createStopIcon('start')}>
             <Popup>
-              <div className="text-sm">
+              <div className="text-sm font-sans">
                 <p className="font-bold">Start (Current Location)</p>
-                <p>{startLoc.label}</p>
+                <p className="text-slate-600">{startLoc.label}</p>
               </div>
             </Popup>
           </Marker>
@@ -126,11 +131,11 @@ export default function RouteMap({ route, stops, locations }) {
               icon={createStopIcon(stop.type)}
             >
               <Popup>
-                <div className="text-sm">
+                <div className="text-sm font-sans">
                   <p className="font-bold capitalize">{stop.type}</p>
-                  <p>{stop.location}</p>
-                  {stop.time && <p className="text-gray-600">{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>}
-                  {stop.duration && <p className="text-gray-600">Duration: {stop.duration >= 60 ? `${Math.floor(stop.duration/60)}h ${stop.duration%60}m` : `${stop.duration}m`}</p>}
+                  <p className="text-slate-600">{stop.location}</p>
+                  {stop.time && <p className="text-slate-400 text-xs mt-1">{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>}
+                  {stop.duration && <p className="text-slate-400 text-xs">Duration: {stop.duration >= 60 ? `${Math.floor(stop.duration / 60)}h ${stop.duration % 60}m` : `${stop.duration}m`}</p>}
                 </div>
               </Popup>
             </Marker>
@@ -140,23 +145,23 @@ export default function RouteMap({ route, stops, locations }) {
         {endLoc && (
           <Marker position={[endLoc.lat, endLoc.lng]} icon={createStopIcon('end')}>
             <Popup>
-              <div className="text-sm">
+              <div className="text-sm font-sans">
                 <p className="font-bold">End (Dropoff)</p>
-                <p>{endLoc.label}</p>
+                <p className="text-slate-600">{endLoc.label}</p>
               </div>
             </Popup>
           </Marker>
         )}
       </MapContainer>
-      <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
+      <div className="absolute bottom-3 left-3 z-[1000] glass-card rounded-xl px-3.5 py-2.5 shadow-lg">
+        <div className="flex flex-wrap gap-x-3 gap-y-1.5">
           {LEGEND_ITEMS.map(({ type, label }) => (
-            <div key={type} className="flex items-center gap-1">
+            <div key={type} className="flex items-center gap-1.5">
               <span
-                className="inline-block w-3 h-3 rounded-full border border-white"
+                className="inline-block w-2.5 h-2.5 rounded-full shadow-sm"
                 style={{ background: STOP_STYLES[type]?.color }}
               />
-              <span className="text-[10px] text-gray-700 font-medium">{label}</span>
+              <span className="text-[10px] text-slate-600 font-semibold">{label}</span>
             </div>
           ))}
         </div>
