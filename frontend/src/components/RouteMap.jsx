@@ -17,13 +17,13 @@ const STOP_STYLES = {
   rest: { color: '#8b5cf6', label: 'R' },
   break: { color: '#3b82f6', label: 'B' },
   restart: { color: '#8b5cf6', label: '34' },
-  start: { color: '#171717', label: 'S' },
-  end: { color: '#171717', label: 'E' },
+  start: { color: '#2563eb', label: 'S' },
+  end: { color: '#2563eb', label: 'E' },
 }
 
 function createStopIcon(type) {
   const style = STOP_STYLES[type] || STOP_STYLES.break
-  const size = type === 'start' || type === 'end' ? 30 : 26
+  const size = type === 'start' || type === 'end' ? 32 : 28
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -35,8 +35,8 @@ function createStopIcon(type) {
       font-size:${type === 'restart' ? 9 : 11}px;
       font-weight:700;
       font-family:'Plus Jakarta Sans',system-ui;
-      border:2px solid white;
-      box-shadow:0 1px 4px rgba(0,0,0,.2);
+      border:2.5px solid white;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);
     ">${style.label}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -47,7 +47,7 @@ function FitBounds({ coordinates }) {
   const map = useMap()
   useEffect(() => {
     if (coordinates?.length > 0) {
-      map.fitBounds(L.latLngBounds(coordinates.map((c) => [c[0], c[1]])), { padding: [30, 30] })
+      map.fitBounds(L.latLngBounds(coordinates.map((c) => [c[0], c[1]])), { padding: [40, 40] })
     }
   }, [coordinates, map])
   return null
@@ -61,8 +61,15 @@ export default function RouteMap({ route, stops, locations }) {
 
   if (!route) {
     return (
-      <div className="bg-neutral-50 border border-neutral-200 rounded-lg h-[400px] flex items-center justify-center">
-        <p className="text-[13px] text-neutral-400">Route map will appear here</p>
+      <div className="card flex items-center justify-center" style={{ height: 420 }}>
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-2">
+            <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+            </svg>
+          </div>
+          <p className="text-[13px] text-stone-400">Route map will appear here</p>
+        </div>
       </div>
     )
   }
@@ -71,18 +78,18 @@ export default function RouteMap({ route, stops, locations }) {
   const endLoc = locations?.dropoff
 
   return (
-    <div className="rounded-lg overflow-hidden border border-neutral-200 relative animate-enter" style={{ height: 400 }}>
+    <div className="card overflow-hidden relative animate-enter" style={{ height: 420 }}>
       <MapContainer center={[39.8283, -98.5795]} zoom={4} className="w-full h-full" style={{ height: '100%' }}>
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        <Polyline positions={coordinates} color="#171717" weight={3} opacity={0.7} />
+        <Polyline positions={coordinates} color="#2563EB" weight={3.5} opacity={0.8} />
         <FitBounds coordinates={coordinates} />
 
         {startLoc && (
           <Marker position={[startLoc.lat, startLoc.lng]} icon={createStopIcon('start')}>
-            <Popup><div className="text-sm"><p className="font-semibold">Start</p><p className="text-neutral-500">{startLoc.label}</p></div></Popup>
+            <Popup><div className="text-sm"><p className="font-semibold">Start</p><p className="text-stone-500">{startLoc.label}</p></div></Popup>
           </Marker>
         )}
 
@@ -95,9 +102,9 @@ export default function RouteMap({ route, stops, locations }) {
               <Popup>
                 <div className="text-sm">
                   <p className="font-semibold capitalize">{stop.type}</p>
-                  <p className="text-neutral-500">{stop.location}</p>
-                  {stop.time && <p className="text-neutral-400 text-xs mt-1">{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>}
-                  {stop.duration && <p className="text-neutral-400 text-xs">{stop.duration >= 60 ? `${Math.floor(stop.duration / 60)}h ${stop.duration % 60}m` : `${stop.duration}m`}</p>}
+                  <p className="text-stone-500">{stop.location}</p>
+                  {stop.time && <p className="text-stone-400 text-xs mt-1">{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</p>}
+                  {stop.duration && <p className="text-stone-400 text-xs">{stop.duration >= 60 ? `${Math.floor(stop.duration / 60)}h ${stop.duration % 60}m` : `${stop.duration}m`}</p>}
                 </div>
               </Popup>
             </Marker>
@@ -106,17 +113,17 @@ export default function RouteMap({ route, stops, locations }) {
 
         {endLoc && (
           <Marker position={[endLoc.lat, endLoc.lng]} icon={createStopIcon('end')}>
-            <Popup><div className="text-sm"><p className="font-semibold">End</p><p className="text-neutral-500">{endLoc.label}</p></div></Popup>
+            <Popup><div className="text-sm"><p className="font-semibold">End</p><p className="text-stone-500">{endLoc.label}</p></div></Popup>
           </Marker>
         )}
       </MapContainer>
 
-      <div className="absolute bottom-2.5 left-2.5 z-[1000] bg-white/90 backdrop-blur-sm rounded-md px-2.5 py-1.5 shadow-sm border border-neutral-100">
-        <div className="flex flex-wrap gap-x-2.5 gap-y-1">
+      <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-md rounded-lg px-3 py-2 shadow-lg border border-white/50">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
           {['start', 'pickup', 'fuel', 'break', 'rest', 'restart', 'dropoff', 'end'].map((type) => (
-            <div key={type} className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: STOP_STYLES[type]?.color }} />
-              <span className="text-[10px] text-neutral-500 capitalize">{type === 'restart' ? '34h' : type}</span>
+            <div key={type} className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ background: STOP_STYLES[type]?.color }} />
+              <span className="text-[10px] text-stone-600 font-medium capitalize">{type === 'restart' ? '34h Reset' : type}</span>
             </div>
           ))}
         </div>

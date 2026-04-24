@@ -1,41 +1,55 @@
 const COLORS = {
-  pickup: 'bg-green-500',
-  dropoff: 'bg-red-500',
-  fuel: 'bg-amber-500',
-  rest: 'bg-violet-500',
-  break: 'bg-blue-500',
-  restart: 'bg-violet-500',
+  pickup: { bg: 'bg-emerald-500', ring: 'ring-emerald-100' },
+  dropoff: { bg: 'bg-red-500', ring: 'ring-red-100' },
+  fuel: { bg: 'bg-amber-500', ring: 'ring-amber-100' },
+  rest: { bg: 'bg-violet-500', ring: 'ring-violet-100' },
+  break: { bg: 'bg-blue-500', ring: 'ring-blue-100' },
+  restart: { bg: 'bg-violet-500', ring: 'ring-violet-100' },
 }
 
 export default function StopsList({ stops }) {
   if (!stops || stops.length === 0) return null
 
   return (
-    <div className="animate-enter delay-2">
-      <h3 className="text-[13px] font-medium text-neutral-500 mb-3">Stops</h3>
-      <div className="space-y-1">
-        {stops.map((stop, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-neutral-50 transition-colors group"
-          >
-            <span className={`w-2 h-2 rounded-full shrink-0 ${COLORS[stop.type] || 'bg-neutral-400'}`} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-medium text-neutral-800 capitalize">{stop.type}</span>
-                <span className="text-[12px] text-neutral-400 truncate">{stop.location}</span>
+    <div className="card p-4 animate-enter delay-2">
+      <h3 className="text-[12px] font-medium text-stone-400 uppercase tracking-wider mb-3">
+        Stops <span className="text-stone-300">({stops.length})</span>
+      </h3>
+      <div className="relative">
+        <div className="absolute left-[11px] top-3 bottom-3 w-px bg-stone-100" />
+
+        <div className="space-y-0.5">
+          {stops.map((stop, idx) => {
+            const c = COLORS[stop.type] || { bg: 'bg-stone-400', ring: 'ring-stone-100' }
+            return (
+              <div
+                key={idx}
+                className="relative flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-stone-50/80 transition-colors duration-150"
+              >
+                <div className={`relative z-10 w-[22px] h-[22px] rounded-full ${c.bg} ring-4 ${c.ring} flex items-center justify-center shrink-0 mt-0.5`}>
+                  <span className="text-[9px] font-bold text-white uppercase">
+                    {stop.type === 'restart' ? '34' : stop.type?.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-semibold text-stone-800 capitalize">{stop.type}</span>
+                  </div>
+                  <p className="text-[12px] text-stone-400 truncate">{stop.location}</p>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-stone-400">
+                    {stop.time && (
+                      <span>{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                    )}
+                    {stop.time && stop.duration && <span className="text-stone-200">&middot;</span>}
+                    {stop.duration && (
+                      <span>{stop.duration >= 60 ? `${Math.floor(stop.duration / 60)}h ${stop.duration % 60}m` : `${stop.duration}m`}</span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 text-[12px] text-neutral-400 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              {stop.time && (
-                <span>{new Date(stop.time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-              )}
-              {stop.duration && (
-                <span>{stop.duration >= 60 ? `${Math.floor(stop.duration / 60)}h ${stop.duration % 60}m` : `${stop.duration}m`}</span>
-              )}
-            </div>
-          </div>
-        ))}
+            )
+          })}
+        </div>
       </div>
     </div>
   )
