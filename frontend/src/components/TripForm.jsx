@@ -7,6 +7,7 @@ export default function TripForm({ onSubmit, loading }) {
     dropoff_location: '',
     cycle_used: 0,
   })
+  const [validationError, setValidationError] = useState('')
 
   const handleLocationSelect = (name, displayName) => {
     setForm((prev) => ({ ...prev, [name]: displayName }))
@@ -18,10 +19,15 @@ export default function TripForm({ onSubmit, loading }) {
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value,
     }))
+    if (validationError) setValidationError('')
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!form.current_location.trim()) return setValidationError('Current location is required')
+    if (!form.pickup_location.trim()) return setValidationError('Pickup location is required')
+    if (!form.dropoff_location.trim()) return setValidationError('Dropoff location is required')
+    setValidationError('')
     onSubmit(form)
   }
 
@@ -29,13 +35,13 @@ export default function TripForm({ onSubmit, loading }) {
   const pct = Math.max(0, Math.min(100, (remaining / 70) * 100))
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5 animate-enter">
+    <form onSubmit={handleSubmit} noValidate className="card p-5 animate-enter">
       <div className="space-y-3.5">
         <LocationField
           label="Current Location"
           name="current_location"
           value={form.current_location}
-          onValueChange={(v) => setForm((p) => ({ ...p, current_location: v }))}
+          onValueChange={(v) => { setForm((p) => ({ ...p, current_location: v })); if (validationError) setValidationError('') }}
           onSelect={handleLocationSelect}
           placeholder="e.g. Denver, CO"
           color="text-blue-500"
@@ -44,7 +50,7 @@ export default function TripForm({ onSubmit, loading }) {
           label="Pickup Location"
           name="pickup_location"
           value={form.pickup_location}
-          onValueChange={(v) => setForm((p) => ({ ...p, pickup_location: v }))}
+          onValueChange={(v) => { setForm((p) => ({ ...p, pickup_location: v })); if (validationError) setValidationError('') }}
           onSelect={handleLocationSelect}
           placeholder="e.g. Kansas City, MO"
           color="text-emerald-500"
@@ -53,7 +59,7 @@ export default function TripForm({ onSubmit, loading }) {
           label="Dropoff Location"
           name="dropoff_location"
           value={form.dropoff_location}
-          onValueChange={(v) => setForm((p) => ({ ...p, dropoff_location: v }))}
+          onValueChange={(v) => { setForm((p) => ({ ...p, dropoff_location: v })); if (validationError) setValidationError('') }}
           onSelect={handleLocationSelect}
           placeholder="e.g. Chicago, IL"
           color="text-red-400"
@@ -94,6 +100,10 @@ export default function TripForm({ onSubmit, loading }) {
           </div>
         </div>
       </div>
+
+      {validationError && (
+        <p className="mt-3 text-[13px] text-red-500 font-medium">{validationError}</p>
+      )}
 
       <button
         type="submit"
@@ -219,7 +229,6 @@ function LocationField({ label, name, value, onValueChange, onSelect, placeholde
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
-          required
           placeholder={placeholder}
           maxLength={200}
           autoComplete="off"
