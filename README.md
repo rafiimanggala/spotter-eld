@@ -5,7 +5,7 @@ FMCSA Hours of Service compliant trip planner with route mapping and ELD daily l
 ## Live Demo
 
 - **Frontend**: https://frontend-lac-alpha-42.vercel.app
-- **Backend API**: https://spotter-eld-api.onrender.com
+- **Backend API**: https://spotter-eld-api.vercel.app
 
 ## Features
 
@@ -37,7 +37,7 @@ FMCSA Hours of Service compliant trip planner with route mapping and ELD daily l
 | Log Drawing | HTML5 Canvas |
 | Routing | OSRM (Open Source Routing Machine) |
 | Geocoding | Nominatim (OpenStreetMap) |
-| Hosting | Vercel (frontend) + Render (backend) |
+| Hosting | Vercel (frontend + backend) |
 
 ## Setup
 
@@ -82,7 +82,7 @@ The frontend dev server proxies `/api` requests to `localhost:8001`.
 ```bash
 cd backend
 source venv/bin/activate
-python manage.py test api.tests -v 2
+python -m pytest api/tests/ -v
 ```
 
 15 tests covering HOS engine rules and log generator correctness.
