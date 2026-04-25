@@ -351,6 +351,10 @@ function drawEntries(ctx, entries) {
     }
 
     ctx.beginPath()
+    ctx.arc(x1, y, 3, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.beginPath()
     ctx.moveTo(x1, y)
     ctx.lineTo(x2, y)
     ctx.stroke()
@@ -457,21 +461,11 @@ function drawRemarks(ctx, remarks, entries) {
   ctx.font = '9px Arial, sans-serif'
   ctx.textAlign = 'left'
 
-  // Horizontal layout: remarks placed left-to-right in rows
-  const remarkPadLeft = GRID_LEFT + 4
-  const remarkColW = 140
-  const cols = Math.floor(GRID_W / remarkColW)
-  const lineH = 11
-  const startY = remarkTop + 38
+  const angle = -Math.PI / 4
 
-  for (let i = 0; i < remarks.length && i < cols * 6; i++) {
+  for (let i = 0; i < remarks.length; i++) {
     const remark = remarks[i]
-    const col = i % cols
-    const row = Math.floor(i / cols)
-    const x = remarkPadLeft + col * remarkColW
-    const y = startY + row * (lineH * 2 + 4)
 
-    // Format time string
     const rawTime = remark.time || remark.start_time || 0
     const decTime = parseTimeToDecimal(rawTime)
     const hrs = Math.floor(decTime)
@@ -479,11 +473,19 @@ function drawRemarks(ctx, remarks, entries) {
     const timeStr = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
 
     const location = remark.text || remark.location || `${remark.city || ''} - ${remark.activity || ''}`
+    const label = `${timeStr} - ${location.substring(0, 28)}`
 
-    ctx.font = 'bold 8px Arial, sans-serif'
-    ctx.fillText(timeStr, x, y)
+    const x = timeToX(decTime)
+    const y = remarkTop + 34
+
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(angle)
     ctx.font = '8px Arial, sans-serif'
-    ctx.fillText(location.substring(0, 20), x, y + lineH)
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#000000'
+    ctx.fillText(label, 0, 0)
+    ctx.restore()
   }
 }
 
