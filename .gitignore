@@ -18,4 +18,15 @@ backend/db.sqlite3
 fmsca-image.png
 blank-paper-log.png
 ASSESSMENT-REFERENCE.md
+assessment-docs/
 docs/
+
+# Video/narration tooling output
+video-output/
+video-frames/
+narration-audio/
+narration-script.txt
+assessment.zip
+record-demo.js
+record-narrated-demo.js
+generate-tts.py
