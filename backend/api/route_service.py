@@ -34,19 +34,25 @@ HEADERS = {
 MAX_RETRIES = 5
 
 _last_nominatim_call = 0.0
+_geocode_cache = {}
 
 
 def _rate_limit_nominatim():
     """Respect Nominatim's 1 req/sec rate limit."""
     global _last_nominatim_call
     elapsed = time.time() - _last_nominatim_call
-    if elapsed < 1.0:
-        time.sleep(1.0 - elapsed)
+    if elapsed < 1.5:
+        time.sleep(1.5 - elapsed)
     _last_nominatim_call = time.time()
 
 
 def geocode(address):
-    """Convert address string to {lat, lng, label}."""
+    """Convert address string to {lat, lng, label} with in-memory cache."""
+    cache_key = address.strip().lower()
+    if cache_key in _geocode_cache:
+        logger.info('Geocode cache hit for: %s', address)
+        return _geocode_cache[cache_key]
+
     for attempt in range(MAX_RETRIES):
         _rate_limit_nominatim()
         resp = requests.get(
@@ -61,8 +67,9 @@ def geocode(address):
             timeout=10,
         )
         if resp.status_code == 429:
-            logger.warning('Nominatim rate limited on geocode attempt %d for: %s', attempt + 1, address)
-            time.sleep(2 ** attempt)
+            wait_time = min(2 ** (attempt + 1), 30)
+            logger.warning('Nominatim rate limited on geocode attempt %d for: %s (waiting %ds)', attempt + 1, address, wait_time)
+            time.sleep(wait_time)
             continue
         resp.raise_for_status()
         break
@@ -73,11 +80,13 @@ def geocode(address):
         logger.warning('Geocode returned no results for: %s', address)
         raise ValueError(f'Could not geocode: {address}')
     hit = results[0]
-    return {
+    result = {
         'lat': float(hit['lat']),
         'lng': float(hit['lon']),
         'label': hit.get('display_name', address),
     }
+    _geocode_cache[cache_key] = result
+    return result
 
 
 def get_route(start_coords, end_coords):
