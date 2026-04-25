@@ -288,7 +288,7 @@ function drawGrid(ctx) {
     const x = timeToX(h)
 
     ctx.strokeStyle = '#000000'
-    ctx.lineWidth = h === 0 || h === 24 ? 1.5 : 0.8
+    ctx.lineWidth = h === 0 || h === 12 || h === 24 ? 1.5 : 0.8
     ctx.beginPath()
     ctx.moveTo(x, GRID_TOP)
     ctx.lineTo(x, GRID_BOTTOM)
@@ -349,10 +349,6 @@ function drawEntries(ctx, entries) {
       ctx.lineTo(x1, y)
       ctx.stroke()
     }
-
-    ctx.beginPath()
-    ctx.arc(x1, y, 3, 0, Math.PI * 2)
-    ctx.fill()
 
     ctx.beginPath()
     ctx.moveTo(x1, y)
@@ -461,31 +457,33 @@ function drawRemarks(ctx, remarks, entries) {
   ctx.font = '9px Arial, sans-serif'
   ctx.textAlign = 'left'
 
-  const usedPositions = []
+  // Horizontal layout: remarks placed left-to-right in rows
+  const remarkPadLeft = GRID_LEFT + 4
+  const remarkColW = 140
+  const cols = Math.floor(GRID_W / remarkColW)
+  const lineH = 11
+  const startY = remarkTop + 38
 
-  for (let i = 0; i < remarks.length && i < 12; i++) {
+  for (let i = 0; i < remarks.length && i < cols * 6; i++) {
     const remark = remarks[i]
-    const time = parseTimeToDecimal(remark.time || remark.start_time || 0)
-    let x = timeToX(time)
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const x = remarkPadLeft + col * remarkColW
+    const y = startY + row * (lineH * 2 + 4)
 
-    for (const usedX of usedPositions) {
-      if (Math.abs(x - usedX) < 25) {
-        x += 25
-      }
-    }
-    usedPositions.push(x)
+    // Format time string
+    const rawTime = remark.time || remark.start_time || 0
+    const decTime = parseTimeToDecimal(rawTime)
+    const hrs = Math.floor(decTime)
+    const mins = Math.round((decTime - hrs) * 60)
+    const timeStr = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
 
-    x = Math.max(GRID_LEFT + 5, Math.min(x, GRID_RIGHT - 60))
+    const location = remark.text || remark.location || `${remark.city || ''} - ${remark.activity || ''}`
 
-    const row = Math.floor(i / 2)
-    const y = remarkTop + 36 + row * 22
-    const text = remark.text || remark.location || `${remark.city || ''} - ${remark.activity || ''}`
-
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.rotate(-Math.PI / 6)
-    ctx.fillText(text.substring(0, 35), 0, 0)
-    ctx.restore()
+    ctx.font = 'bold 8px Arial, sans-serif'
+    ctx.fillText(timeStr, x, y)
+    ctx.font = '8px Arial, sans-serif'
+    ctx.fillText(location.substring(0, 20), x, y + lineH)
   }
 }
 
