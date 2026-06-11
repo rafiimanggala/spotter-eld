@@ -1,0 +1,15 @@
+01_intro 1.50
+02_validation 16.69
+03_autocomplete 27.71
+04_locations 35.36
+05_cycle 50.63
+06_calculate 62.54
+07_processing 64.24
+08_overview 83.61
+09_map 100.43
+10_timeline 118.36
+11_logsheets 134.82
+12_logdetail 151.36
+13_transitions 172.87
+14_download 189.33
+15_outro 208.19
